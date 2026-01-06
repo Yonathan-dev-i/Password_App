@@ -17,6 +17,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,19 +26,30 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.redsytem.passwordapp.BaseDeDatos.BDHelper;
 import com.redsytem.passwordapp.MainActivity;
-import com.redsytem.passwordapp.Modelo.Password;
 import com.redsytem.passwordapp.R;
+
+import java.security.SecureRandom;
 
 public class Agregar_Actualizar_Registro extends AppCompatActivity {
 
+    // Vistas existentes
     EditText EtTitulo, EtCuenta, EtNombreUsuario, EtPassword, EtSitioWeb, EtNota;
     ImageView Imagen;
     Button Btn_Adjuntar_Imagen;
+
+    // --- NUEVAS VISTAS PARA GENERADOR Y FORTALEZA ---
+    ImageButton btnGenerar;
+    TextView txtFortaleza;
+    ProgressBar progressFortaleza;
+    // ------------------------------------------------
 
     String id, titulo, cuenta, nombre_usuario, password, sitio_web, nota, tiempo_registro, tiempo_actualizacion;
     private boolean MODO_EDICION = false;
@@ -59,6 +72,7 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
         InicializarVariables();
         ObtenerInformacion();
 
+        // Listener para adjuntar imagen (Cámara)
         Btn_Adjuntar_Imagen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,6 +84,30 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
                 }
 
             }
+        });
+
+        // --- NUEVO: LISTENER PARA GENERAR CONTRASEÑA ---
+        btnGenerar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String nuevaPass = generarPasswordSegura(12); // Genera password de 12 caracteres
+                EtPassword.setText(nuevaPass);
+                EtPassword.setSelection(nuevaPass.length()); // Mueve el cursor al final
+            }
+        });
+
+        // --- NUEVO: LISTENER PARA ANALIZAR FORTALEZA EN TIEMPO REAL ---
+        EtPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                analizarFortaleza(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -85,8 +123,13 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
 
         Imagen = findViewById(R.id.Imagen);
         Btn_Adjuntar_Imagen = findViewById(R.id.Btn_Adjuntar_Imagen);
-
         Iv_imagen_eliminar = findViewById(R.id.Iv_eliminar_imagen);
+
+        // --- INICIALIZAR NUEVAS VISTAS ---
+        btnGenerar = findViewById(R.id.btn_generar_pass);
+        txtFortaleza = findViewById(R.id.txt_fortaleza);
+        progressFortaleza = findViewById(R.id.progress_fortaleza);
+        // ---------------------------------
 
         bdHelper = new BDHelper(this);
     }
@@ -104,7 +147,13 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
             password = intent.getStringExtra("PASSWORD");
             sitio_web = intent.getStringExtra("SITIO_WEB");
             nota = intent.getStringExtra("NOTA");
-            imagenUri = Uri.parse(intent.getStringExtra("IMAGEN"));
+
+            // Verificación segura de null para la imagen
+            String imgString = intent.getStringExtra("IMAGEN");
+            if (imgString != null) {
+                imagenUri = Uri.parse(imgString);
+            }
+
             tiempo_registro = intent.getStringExtra("T_REGISTRO");
             tiempo_actualizacion = intent.getStringExtra("T_ACTUALIZACION");
 
@@ -117,9 +166,9 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
             EtNota.setText(nota);
 
             /*Si la imagen no existe*/
-            if (imagenUri.toString().equals("null")){
+            if (imagenUri == null || imagenUri.toString().equals("null")){
                 Imagen.setImageResource(R.drawable.imagen);
-                Iv_imagen_eliminar.setVisibility(View.VISIBLE);
+                Iv_imagen_eliminar.setVisibility(View.GONE); // Ocultar si no hay imagen
             }
             /*Si la imagen existe*/
             else {
@@ -132,6 +181,7 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
                 public void onClick(View v) {
                     imagenUri = null;
                     Imagen.setImageResource(R.drawable.imagen);
+                    Iv_imagen_eliminar.setVisibility(View.GONE); // Ocultar al eliminar
                     Toast.makeText(Agregar_Actualizar_Registro.this, "Imagen eliminada", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -175,7 +225,7 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
         }
 
         else {
-            //Agregar un nuev registro
+            //Agregar un nuevo registro
             if (!titulo.equals("")){
                 /*Obtener el tiempo del dispositivo*/
                 String tiempo = ""+System.currentTimeMillis();
@@ -202,6 +252,48 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
         }
 
     }
+
+    // --- MÉTODOS LÓGICOS NUEVOS ---
+
+    private String generarPasswordSegura(int longitud) {
+        String CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+=<>";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(longitud);
+
+        for (int i = 0; i < longitud; i++) {
+            int index = random.nextInt(CARACTERES.length());
+            sb.append(CARACTERES.charAt(index));
+        }
+        return sb.toString();
+    }
+
+    private void analizarFortaleza(String password) {
+        int puntuacion = 0;
+
+        // Reglas básicas
+        if (password.length() >= 8) puntuacion += 20;
+        if (password.length() >= 12) puntuacion += 20;
+        if (password.matches("(?=.*[0-9]).*")) puntuacion += 20; // Tiene números
+        if (password.matches("(?=.*[a-z]).*")) puntuacion += 15; // Minúsculas
+        if (password.matches("(?=.*[A-Z]).*")) puntuacion += 15; // Mayúsculas
+        if (password.matches("(?=.*[@#$%^&+=!]).*")) puntuacion += 10; // Símbolos
+
+        // Actualizar UI
+        progressFortaleza.setProgress(puntuacion);
+
+        if (puntuacion < 40) {
+            txtFortaleza.setText("Fortaleza: Débil");
+            // Usamos ContextCompat para evitar métodos obsoletos
+            txtFortaleza.setTextColor(ContextCompat.getColor(this, R.color.rojo_error));
+        } else if (puntuacion < 70) {
+            txtFortaleza.setText("Fortaleza: Media");
+            txtFortaleza.setTextColor(ContextCompat.getColor(this, R.color.amarillo_alerta));
+        } else {
+            txtFortaleza.setText("Fortaleza: Fuerte");
+            txtFortaleza.setTextColor(ContextCompat.getColor(this, R.color.verde_exito));
+        }
+    }
+    // -----------------------------
 
 
     @Override
@@ -238,6 +330,7 @@ public class Agregar_Actualizar_Registro extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK){
                         Imagen.setImageURI(imagenUri);
+                        Iv_imagen_eliminar.setVisibility(View.VISIBLE); // Mostrar icono borrar al tomar foto
                     }
                     else {
                         Toast.makeText(Agregar_Actualizar_Registro.this, "Cancelado por el usuario", Toast.LENGTH_SHORT).show();

@@ -4,8 +4,13 @@
     package="com.redsytem.passwordapp">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +21,8 @@
         android:roundIcon="@mipmap/icono_password_app_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
         <activity
             android:name=".Login_usuario.Logeo_usuario"

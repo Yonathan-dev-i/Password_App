@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 import com.redsytem.passwordapp.MainActivity;
 import com.redsytem.passwordapp.R;
+import com.redsytem.passwordapp.Utilidades.SesionUsuario; // <--- IMPORTANTE
 
 public class Logeo_usuario extends AppCompatActivity {
 
@@ -42,7 +43,7 @@ public class Logeo_usuario extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String S_password = EtPasswordU.getText().toString().trim();
-                //Obtener la contraseña maestra almacenada en SP
+                // Obtener la contraseña maestra almacenada en SP
                 String password_SP = sharedPreferences.getString(KEY_PASSWORD, null);
 
                 if (S_password.equals("")){
@@ -50,7 +51,11 @@ public class Logeo_usuario extends AppCompatActivity {
                 }
                 else if (!S_password.equals(password_SP)){
                     Toast.makeText(Logeo_usuario.this, "La contraseña no es la correcta", Toast.LENGTH_SHORT).show();
-                }else {
+                } else {
+                    // --- CAMBIO: GUARDAR EN SESIÓN ---
+                    SesionUsuario.setPasswordMaestra(S_password);
+                    // ---------------------------------
+
                     Intent intent = new Intent(Logeo_usuario.this, MainActivity.class);
                     startActivity(intent);
                     finish();
@@ -62,12 +67,19 @@ public class Logeo_usuario extends AppCompatActivity {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                Toast.makeText(Logeo_usuario.this, "No existen huellas dactilares registradas", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Logeo_usuario.this, "Error: " + errString, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
+
+                // --- CAMBIO: RECUPERAR CONTRASEÑA DE SP Y GUARDAR EN SESIÓN ---
+                // Al usar huella, recuperamos la contraseña original guardada en preferencias
+                String password_SP = sharedPreferences.getString(KEY_PASSWORD, null);
+                SesionUsuario.setPasswordMaestra(password_SP);
+                // --------------------------------------------------------------
+
                 Toast.makeText(Logeo_usuario.this, "Autenticación biométrica exitosa, Bienvedido(a)!", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(Logeo_usuario.this, MainActivity.class));
                 finish();

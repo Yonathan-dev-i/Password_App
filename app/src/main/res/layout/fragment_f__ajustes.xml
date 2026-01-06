@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="true"
     tools:context=".Fragmentos.F_Ajustes">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="20dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -23,7 +25,7 @@
 
         <TextView
             android:id="@+id/Eliminar_Todos_Registros"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/opensans_bold"
             android:text="@string/Eliminar_Todos_Registros"
@@ -38,7 +40,7 @@
 
         <TextView
             android:id="@+id/Exportar_Archivo"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/opensans_bold"
             android:text="@string/Exportar_Archivo"
@@ -53,7 +55,7 @@
 
         <TextView
             android:id="@+id/Importar_Archivo"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/opensans_bold"
             android:text="@string/Importar_Archivo"
@@ -68,7 +70,7 @@
 
         <TextView
             android:id="@+id/Cambiar_password_maestra"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/opensans_bold"
             android:text="@string/Cambiar_password_maestra"
@@ -81,6 +83,76 @@
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"/>
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/Card_Input_Importar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="5dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#F5F5F5">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="15dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Desencriptar Respaldo CSV"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Introduce la llave con la que creaste este archivo:"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="5dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:passwordToggleEnabled="true">
+
+                    <EditText
+                        android:id="@+id/Et_Password_Importar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Contraseña del CSV"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="end"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/Btn_Cancelar_Import"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cancelar"
+                        android:background="@android:color/transparent"
+                        android:textColor="@android:color/holo_red_dark"/>
+
+                    <Button
+                        android:id="@+id/Btn_Confirmar_Import"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="IMPORTAR"
+                        android:layout_marginStart="10dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-</RelativeLayout>
+</ScrollView>
